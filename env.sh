@@ -1,0 +1,1 @@
+export LD_LIBRARY_PATH="/home/ethanc8858/.venvs/attrpred/lib/python3.12/site-packages/nvidia/cu13/lib:/home/ethanc8858/.venvs/attrpred/lib/python3.12/site-packages/nvidia/cudnn/lib:/home/ethanc8858/.venvs/attrpred/lib/python3.12/site-packages/torch/lib:$LD_LIBRARY_PATH"

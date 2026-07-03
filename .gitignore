@@ -1,0 +1,15 @@
+# Large/raw data — not appropriate for git; see FEASIBILITY.md for download sources
+data/
+embeddings/
+models/
+
+# Python env
+.venv/
+__pycache__/
+*.pyc
+
+# Run logs (debugging artifacts, not deliverables)
+logs_*.txt
+
+# OS
+.DS_Store

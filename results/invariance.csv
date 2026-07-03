@@ -1,0 +1,8 @@
+family,dprime_pose,n_identities,mean_within_r,mean_cross_r
+facenet,4.344,102,0.7125,0.5311
+arcface,7.219,102,0.5144,0.226
+cosface,7.014,102,0.6319,0.4442
+adaface,7.279,102,0.5388,0.2671
+fairface,1.749,102,0.6862,0.517
+geometric,-2.874,102,0.5352,0.3749
+clip,3.076,102,0.8398,0.7031
