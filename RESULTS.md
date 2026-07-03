@@ -36,10 +36,15 @@ non-face-specific foundation-model baseline.
 5-point ArcFace alignment to 112×112; loose 1.3× crop at 224 for CLIP/FairFace).
 Frame-filling faces that RetinaFace missed at the image edge were recovered with a
 reflect-padded-border retry (final detection failure: 1 / 8,718 images). Each frozen
-backbone → identical lightweight probe on top (ridge regression with alpha tuned by
-inner 3-fold CV; a 256-unit MLP as a secondary probe). Within-dataset: 5-fold CV,
-Pearson/Spearman of predicted vs. true score. Cross-dataset: train on all of A, test on
-all of B (scores z-scored per dataset), all ordered pairs.
+backbone → an identical lightweight ridge regression probe on top (alpha tuned by inner
+3-fold CV), kept deliberately linear and identical across families so the comparison
+isolates what each embedding encodes rather than how much capacity the downstream
+predictor has. (A 256-unit MLP was tried as a non-linear alternative and dropped: it
+lost to ridge on every family/dataset — badly on the small London set (n=102), where
+several MLP scores went to ~0 or negative — indicating overfitting rather than real
+non-linear signal ridge was missing.) Within-dataset: 5-fold CV, Pearson/Spearman of
+predicted vs. true score. Cross-dataset: train on all of A, test on all of B (scores
+z-scored per dataset), all ordered pairs.
 
 **Invariance measure (the novel analysis).** On the London Set's 10 views per identity
 (5 poses × 2 expressions), on L2-normalized embeddings, we measure **d′**: pose-robust
@@ -175,5 +180,5 @@ representations/label distribution, not of one backbone.
 python src/build_manifest.py            # unified manifest.csv
 python src/preprocess.py                # detect+align -> data/aligned112, data/crops224
 ./run_extract_all.sh                    # 7 families x 3 datasets -> embeddings/*.npz
-./run_analysis.sh                       # ridge+MLP probes, invariance, bias -> results/
+./run_analysis.sh                       # ridge probe, invariance, bias -> results/
 ```

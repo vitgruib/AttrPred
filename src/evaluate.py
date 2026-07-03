@@ -1,23 +1,28 @@
-"""Train identical lightweight probes on each embedding family; evaluate within- and cross-dataset.
+"""Train an identical lightweight probe on each embedding family; evaluate within- and cross-dataset.
 
-Within-dataset: 5-fold CV, ridge regression (alpha tuned on inner CV) + small MLP (secondary).
+Probe: ridge regression, alpha tuned by inner 3-fold CV. Kept deliberately simple
+(linear) and identical across all 7 families so the comparison isolates what the
+frozen embeddings encode, not how much capacity the downstream predictor has.
+(An MLP secondary probe was tried and dropped -- see README/RESULTS.md for why:
+it lost to ridge on every family/dataset, badly so on the small London set, i.e.
+it overfit rather than finding real non-linear signal ridge was missing.)
+
+Within-dataset: 5-fold CV, Pearson/Spearman of predicted vs. true score.
 Cross-dataset:  train on all of A, test on all of B (scores z-normalized per dataset;
                 Pearson/Spearman are scale-invariant, RMSE reported in z-units).
 
 Only rated==1 rows are used (London: neutral_front only).
 
 Outputs: results/within.csv, results/cross.csv
-Usage: python src/evaluate.py [--mlp]
+Usage: python src/evaluate.py
 """
 import csv
 import os
-import sys
 
 import numpy as np
 from scipy.stats import pearsonr, spearmanr
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import GridSearchCV, KFold
-from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
@@ -54,13 +59,6 @@ def make_ridge():
     return make_pipeline(
         StandardScaler(),
         GridSearchCV(Ridge(), {'alpha': ALPHAS}, cv=3, scoring='neg_mean_squared_error'))
-
-
-def make_mlp():
-    return make_pipeline(
-        StandardScaler(),
-        MLPRegressor(hidden_layer_sizes=(256,), early_stopping=True,
-                     max_iter=500, random_state=SEED))
 
 
 def within_dataset(probe_name, make_probe):
@@ -123,12 +121,7 @@ def write(path, rows):
 
 
 if __name__ == '__main__':
-    probes = [('ridge', make_ridge)]
-    if '--mlp' in sys.argv:
-        probes.append(('mlp', make_mlp))
-    within_rows, cross_rows = [], []
-    for name, mk in probes:
-        within_rows += within_dataset(name, mk)
-        cross_rows += cross_dataset(name, mk)
+    within_rows = within_dataset('ridge', make_ridge)
+    cross_rows = cross_dataset('ridge', make_ridge)
     write(os.path.join(RES, 'within.csv'), within_rows)
     write(os.path.join(RES, 'cross.csv'), cross_rows)
