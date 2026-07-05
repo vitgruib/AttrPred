@@ -1,11 +1,15 @@
 """Build unified manifest.csv across SCUT-FBP5500, MEBeauty, London Set.
 
-Schema: dataset, image_id, identity, path, score, score_scale, gender, ethnicity, view, rated
+Schema: dataset, image_id, identity, path, score, score_scale, gender, ethnicity, age, view, rated
 - path is relative to repo root
 - score is the mean human attractiveness rating in the dataset's native scale
 - view: frontal for SCUT/MEBeauty; one of 10 view names for London
 - rated: 1 if this exact image carries the attractiveness rating
   (London: only neutral_front images were rated; other views inherit identity but rated=0)
+- age: only London ships a ground-truth age per identity (from london_faces_info.csv);
+  SCUT and MEBeauty have no age label at all, so age='' for every row in those two
+  datasets (see src/bias.py, which restricts age-subgroup analysis to London for this
+  reason rather than estimating age with a model)
 """
 import csv
 import os
@@ -25,7 +29,7 @@ with open(scut_labels) as f:
             dataset='scut', image_id=fn, identity=f'scut_{fn}',
             path=f'data/scut/SCUT-FBP5500_v2/Images/{fn}',
             score=float(score), score_scale='1-5',
-            gender=GENDER[fn[1]], ethnicity=ETH[fn[0]],
+            gender=GENDER[fn[1]], ethnicity=ETH[fn[0]], age='',
             view='frontal', rated=1))
 
 # ---------------- MEBeauty ----------------
@@ -39,7 +43,7 @@ for split in ('train', 'test'):
                 dataset='mebeauty', image_id=parts[-1], identity=f'meb_{parts[-1]}',
                 path=f'data/MEBeauty/{rel}',
                 score=float(r['score']), score_scale='1-10',
-                gender=parts[1], ethnicity=parts[2],
+                gender=parts[1], ethnicity=parts[2], age='',
                 view='frontal', rated=1))
 
 # ---------------- London Set ----------------
@@ -81,6 +85,7 @@ for view in VIEWS:
             path=f'data/london/{view}/{fn}',
             score=means[fid], score_scale='1-7',
             gender=info[fid]['face_gender'], ethnicity=info[fid]['face_eth'],
+            age=info[fid]['face_age'],
             view=view, rated=1 if view == 'neutral_front' else 0))
 
 out = os.path.join(ROOT, 'manifest.csv')
