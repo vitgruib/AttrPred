@@ -8,7 +8,7 @@ before interpreting any number in `presentables/` or `results/`.
 ## 1. Face embedding
 
 A **face embedding** is a fixed-length vector of numbers produced by feeding a face
-photo through a frozen (never fine-tuned in this study) model. Each of the 7 families
+photo through a frozen (never fine-tuned in this study) model. Each of the 11 families
 below is an *independent* pipeline — they do not share a common "raw" feature vector;
 each was trained separately, on different objectives, and each throws away whatever its
 own training objective didn't need. There is no universal "true" feature vector of a
@@ -24,11 +24,23 @@ lossy summary, shaped by its own training data and loss function.
 | FairFace | ResNet-34 (CNN), penultimate layer | Attribute classification — predict race/gender/age, **never trained to distinguish individuals** | FairFace | 512 |
 | Geometric | none (hand-crafted) | No learning — ratios/symmetry measures computed directly from 106 detected landmark points (eye spacing, jaw width, etc.) | — | 221 |
 | CLIP | ViT-L/14 (Vision Transformer, not a CNN) | Image–text contrastive — match photos to captions; not face-specific at all | WebImageText | 768 |
+| DINOv2 | ViT-S/14 (Vision Transformer) | Self-supervised distillation (DINO) — no labels, no text, no identity signal of any kind | LVD-142M | 384 |
+| Blendshapes | MediaPipe Face Landmarker (internal CNN) | Supervised regression to 52 named ARKit blendshape coefficients (brow height, mouth curvature, cheek puff, etc.) — never trained on "is this the same person" | Google's internal face-landmark corpus | 52 |
+| LBPH | none (hand-crafted) | No learning — grid of Local Binary Pattern texture histograms over the aligned face, the classic pre-deep-learning face-recognition algorithm | — | 16384 |
+| Fisherface | Linear PCA+LDA (not a neural network) | Supervised linear discriminant — explicitly fit to *maximize* between-identity separation over within-identity (pose) variance, the same textbook idea as d′ itself | fit in-house on the London Set's own 102 identities (no external corpus) | 101 |
 
-**"Trained for identity"** = FaceNet, ArcFace, CosFace, AdaFace (their explicit job is
-telling people apart). **"Trained, not for identity"** = FairFace, CLIP (they learned
-something about faces/images, but never "is this the same person"). **"Hand-crafted
-(untrained)"** = Geometric (no learning process at all — a fixed formula).
+**"Trained for identity"** = FaceNet, ArcFace, CosFace, AdaFace (deep, their explicit job
+is telling people apart) and Fisherface (classical, same explicit job via linear
+discriminant analysis instead of a CNN). **"Trained, not for identity"** = FairFace,
+CLIP, DINOv2, Blendshapes (they learned something about faces/images, but never "is
+this the same person"). **"Hand-crafted (untrained)"** = Geometric, LBPH (no learning
+process at all — a fixed formula/algorithm, zero learned parameters). Fisherface is
+deliberately *not* grouped with Geometric/LBPH even though it's also classical/non-deep:
+unlike them, it underwent an explicit fitting process whose entire goal was maximizing
+identity discriminability, so it belongs with the "trained for identity" group by
+objective, and with Geometric/LBPH only by mechanism (not deep learning). See
+`RESULTS.md`'s "Results by category" section for the resulting 2×2 (deep/classical) ×
+(identity-trained/not) breakdown.
 
 ---
 
@@ -52,7 +64,7 @@ therefore the **most reliable of the three by rater count** (2,513 vs. 60 vs. an
 unknown-but-likely-smaller MEBeauty count) — yet London produced the *lowest* accuracy
 numbers across every embedding. That tells us the low London accuracy is **not** caused
 by a noisy target; it's almost certainly driven by London's tiny sample size (102 images
-total, so 5-fold cross-validation trains on ~82 and tests on ~20 at a time) — there is
+total, so 10-fold cross-validation trains on ~92 and tests on ~10 at a time) — there is
 simply much less data for the ridge probe to learn the score-predicting relationship
 from, and the resulting accuracy estimate is itself statistically noisier (small-n
 correlations swing more from fold to fold). **These are two different kinds of
@@ -128,8 +140,8 @@ documented rating protocol.
 
 ## 4. Within-dataset vs. cross-dataset accuracy
 
-- **Within-dataset**: 5-fold cross-validation *inside one dataset* — train the probe on
-  80% of that dataset's images, test on the held-out 20%, rotate 5 times, report the
+- **Within-dataset**: 10-fold cross-validation *inside one dataset* — train the probe on
+  90% of that dataset's images, test on the held-out 10%, rotate 10 times, report the
   accuracy metrics on the pooled held-out predictions. Tests: "does this embedding
   predict attractiveness well for faces similar to the ones it was calibrated on?"
 - **Cross-dataset**: train the probe on *all* of dataset A, test it (with no
@@ -165,17 +177,61 @@ representation is *dominated by pose*: two photos of the *same* person from diff
 angles look less similar, on average, than two *different* people's frontal photos —
 turning your head moves the raw landmark ratios more than being a different person does.
 
+**A very high d′** (Fisherface, d′ = 28.42 — roughly 4× the next-highest family) is the
+opposite extreme: a linear projection explicitly fit, by a textbook Fisher-discriminant
+objective, to maximize exactly this quantity. Unlike every other family's d′, this one
+is not a zero-shot measurement — the projection was trained directly on the same 102
+London identities d′ is computed over — so read it as "how far can identity-
+discriminability be pushed by direct optimization," not as directly comparable to the
+other families' out-of-sample numbers. See `RESULTS.md`'s Method section for the full
+caveat.
+
 ---
 
 ## 6. What "the tradeoff" claim actually means
 
-The study's central claim is a **correlation across 7 data points** (one per embedding
+The study's central claim is a **correlation across data points** (one per embedding
 family) between each family's d′ (above) and its mean prediction accuracy (Pearson r,
-averaged across datasets). With only 6–7 families, this is a small-sample correlation —
-reported honestly at p≈0.06–0.07, suggestive and mechanistically consistent, not a
-tight statistical guarantee. See `results/invariance.csv` for the exact per-family
-numbers and `RESULTS.md` (repository root) for the full write-up, caveats, and
-limitations.
+averaged across datasets). Restricted to the original 6 identity/identity-adjacent
+families this correlation was moderate-to-strong (r≈−0.68, p≈0.14); adding DINOv2 and
+Blendshapes (8 trained families) weakened it to essentially nothing (r≈−0.11, p≈0.79);
+adding Fisherface (9 trained families) swings Pearson back to r≈−0.56 (p≈0.12) — but
+Spearman only moves to rho≈−0.48, the signature of Fisherface's extreme, non-zero-shot
+d′ acting as a high-leverage outlier rather than a clean confirmation. None of this
+means the underlying mechanism is wrong — it means low pose-identity discriminability
+is **necessary, not sufficient**, for good attractiveness prediction (Blendshapes has
+low d′ *and* low accuracy, because its 52-d representation lacks the capacity to encode
+appearance regardless of what it was or wasn't trained to discard), and that a 9-point
+correlation is exquisitely sensitive to which 9 points you pick. The **by-category
+comparison** (grouping families into deep/classical × identity-trained/not, see
+`results/category_summary.csv`) shows the same effect more robustly: both
+identity-trained mechanisms (deep margin-CNNs, classical Fisherface) underperform their
+non-identity-trained counterparts within their own mechanism, without relying on a
+single continuous regression line. With only 9–11 families total, every one of these
+correlations is a small-sample estimate — suggestive and mechanistically interpretable,
+not a tight
+statistical guarantee. See `results/invariance.csv` for the exact per-family numbers and
+`RESULTS.md` (repository root) for the full write-up, caveats, and limitations.
+
+---
+
+## 7. Demographic subgroup gap
+
+For a given family, dataset, and attribute (gender, ethnicity, or age), split the
+rated images into subgroups (e.g. male/female), take the same 10-fold ridge probe's
+out-of-fold predictions used everywhere else in this study, and compute Pearson r
+**separately within each subgroup** (a subgroup needs ≥20 images to be reported — fewer
+than that and r is mostly sampling noise). The **gap** is the highest-subgroup r minus
+the lowest-subgroup r for that family/dataset/attribute: 0 would mean the embedding
+predicts attractiveness equally well no matter who's in the photo; a large gap means
+accuracy depends on demographic group membership. This is a *within-dataset* measure —
+it says nothing about whether the subgroups' true attractiveness distributions differ,
+only whether the model's predictions track the human ratings equally well across groups.
+Ethnicity groups differ in both count and definition across datasets (see `RESULTS.md`'s
+Demographic bias section), so gaps are only ever compared within one dataset, never
+pooled across datasets. See `results/bias_gender.csv`, `results/bias_ethnicity.csv`,
+`results/bias_age.csv` for every per-subgroup r, and `results/bias_summary.csv` for the
+gap itself, per family/dataset/attribute.
 
 ---
 
@@ -185,3 +241,5 @@ limitations.
 - `accuracy_by_family.png` — each embedding's within-dataset accuracy, broken out by dataset
 - `invariance_and_accuracy_bars.png` — d′ and accuracy side by side, same ordering, color-coded by training objective
 - `dprime_vs_accuracy.png` — the headline scatter: d′ vs. accuracy, with the fitted trend line
+- `bias_gap_by_family.png` — mean ethnicity gap and mean gender gap by family, same color-coding as above
+- `bias_ethnicity_heatmap.png` — MEBeauty accuracy by ethnicity group × family, the clearest single view of the Black/Asian pattern

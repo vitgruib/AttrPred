@@ -5,7 +5,7 @@
 cd "$(dirname "$0")"
 source env.sh
 PY=~/.venvs/attrpred/bin/python
-for fam in facenet arcface cosface adaface fairface geometric clip; do
+for fam in facenet arcface cosface adaface fairface geometric clip dinov2 blendshapes lbph fisherface; do
   echo "=== EXTRACT_START $fam ==="
   if $PY src/extract.py "$fam" > "logs_extract_${fam}.txt" 2>&1; then
     echo "=== EXTRACT_OK $fam ==="

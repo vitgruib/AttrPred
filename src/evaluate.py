@@ -1,13 +1,13 @@
 """Train an identical lightweight probe on each embedding family; evaluate within- and cross-dataset.
 
 Probe: ridge regression, alpha tuned by inner 3-fold CV. Kept deliberately simple
-(linear) and identical across all 7 families so the comparison isolates what the
+(linear) and identical across all families so the comparison isolates what the
 frozen embeddings encode, not how much capacity the downstream predictor has.
 (An MLP secondary probe was tried and dropped -- see README/RESULTS.md for why:
 it lost to ridge on every family/dataset, badly so on the small London set, i.e.
 it overfit rather than finding real non-linear signal ridge was missing.)
 
-Within-dataset: 5-fold CV, Pearson/Spearman of predicted vs. true score.
+Within-dataset: 10-fold CV, Pearson/Spearman of predicted vs. true score.
 Cross-dataset:  train on all of A, test on all of B (scores z-normalized per dataset;
                 Pearson/Spearman are scale-invariant, RMSE reported in z-units).
 
@@ -31,7 +31,8 @@ EMB = os.path.join(ROOT, 'embeddings')
 RES = os.path.join(ROOT, 'results')
 os.makedirs(RES, exist_ok=True)
 
-FAMILIES = ['facenet', 'arcface', 'cosface', 'adaface', 'fairface', 'geometric', 'clip']
+FAMILIES = ['facenet', 'arcface', 'cosface', 'adaface', 'fairface', 'geometric', 'clip',
+            'dinov2', 'blendshapes', 'lbph', 'fisherface']
 DATASETS = ['scut', 'mebeauty', 'london']
 SEED = 42
 ALPHAS = np.logspace(-2, 5, 15)
@@ -69,7 +70,7 @@ def within_dataset(probe_name, make_probe):
             if not os.path.exists(path):
                 continue
             X, y, _ = load_xy(fam, ds)
-            kf = KFold(n_splits=5, shuffle=True, random_state=SEED)
+            kf = KFold(n_splits=10, shuffle=True, random_state=SEED)
             preds = np.zeros_like(y)
             for tr, te in kf.split(X):
                 m = make_probe()

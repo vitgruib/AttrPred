@@ -1,12 +1,13 @@
 """Extract embeddings for all families on all datasets.
 
 Usage: python src/extract.py <family> [dataset]
-Families: facenet, arcface, cosface, adaface, fairface, geometric, clip
+Families: facenet, arcface, cosface, adaface, fairface, geometric, clip,
+          dinov2, blendshapes, lbph, fisherface
 Output: embeddings/<family>__<dataset>.npz  {ids: [image_id], X: [n,d] float32}
 
 Inputs produced by preprocess.py:
-  data/aligned112/<dataset>/<safe_id>.jpg  (ArcFace 5pt template)  -> identity models
-  data/crops224/<dataset>/<safe_id>.jpg    (loose 1.3x crop)       -> clip/fairface/geometric
+  data/aligned112/<dataset>/<safe_id>.jpg  (ArcFace 5pt template)  -> identity models, lbph, fisherface
+  data/crops224/<dataset>/<safe_id>.jpg    (loose 1.3x crop)       -> clip/fairface/geometric/dinov2/blendshapes
 """
 import csv
 import os
@@ -262,9 +263,127 @@ def run_geometric(dataset):
     save('geometric', dataset, ids, np.stack(X))
 
 
+# -- dinov2: self-supervised ViT (no text/identity supervision at all -- an even
+#    cleaner "never trained to discard appearance" contrast than CLIP)
+
+def run_dinov2(dataset):
+    import torch
+    import timm
+    from PIL import Image
+    dev = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model = timm.create_model('vit_small_patch14_dinov2.lvd142m', pretrained=True, num_classes=0)
+    model = model.eval().to(dev)
+    transform = timm.data.create_transform(**timm.data.resolve_data_config({}, model=model))
+    ids, X, batch = [], [], []
+    items = list(iter_images(dataset, 'data/crops224'))
+    with torch.no_grad():
+        for i, (iid, p) in enumerate(items):
+            batch.append(transform(Image.open(p).convert('RGB')))
+            ids.append(iid)
+            if len(batch) == 32 or i == len(items) - 1:
+                t = torch.stack(batch).to(dev)
+                X.append(model(t).cpu().numpy())
+                batch = []
+    save('dinov2', dataset, ids, np.concatenate(X))
+
+
+# -- blendshapes: MediaPipe Face Landmarker's 52 ARKit blendshape scores. A trained
+#    model, but trained to regress named local shape/expression coefficients, not to
+#    discriminate identity -- same "not part of the identity-invariance tradeoff" story
+#    as fairface/clip, just a richer hand-named feature space than Geometric's 9 ratios.
+
+def run_blendshapes(dataset):
+    import mediapipe as mp
+    from mediapipe.tasks import python as mp_python
+    from mediapipe.tasks.python import vision
+    import cv2
+    model_path = os.path.join(ROOT, 'models', 'face_landmarker.task')
+    if not os.path.exists(model_path):
+        import urllib.request
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
+        urllib.request.urlretrieve(
+            'https://storage.googleapis.com/mediapipe-models/face_landmarker/'
+            'face_landmarker/float16/1/face_landmarker.task', model_path)
+    options = vision.FaceLandmarkerOptions(
+        base_options=mp_python.BaseOptions(model_asset_path=model_path),
+        output_face_blendshapes=True,
+        output_facial_transformation_matrixes=False,
+        num_faces=1,
+        running_mode=vision.RunningMode.IMAGE)
+    landmarker = vision.FaceLandmarker.create_from_options(options)
+    ids, X = [], []
+    n_fail = 0
+    for iid, p in iter_images(dataset, 'data/crops224'):
+        img = cv2.cvtColor(cv2.imread(p), cv2.COLOR_BGR2RGB)
+        mp_img = mp.Image(image_format=mp.ImageFormat.SRGB, data=img)
+        res = landmarker.detect(mp_img)
+        if not res.face_blendshapes:
+            n_fail += 1
+            continue
+        X.append(np.array([c.score for c in res.face_blendshapes[0]], dtype=np.float32))
+        ids.append(iid)
+    print(f'blendshapes {dataset}: {n_fail} detection failures, dim={len(X[0])}')
+    save('blendshapes', dataset, ids, np.stack(X))
+
+
+# -- lbph: OpenCV's classic Local Binary Pattern Histogram face recognizer -- the
+#    pre-deep-learning face-recognition algorithm, no CNN/learning at all. We train it
+#    on the whole dataset (labels are just row indices) purely to pull out its internal
+#    per-image histogram via getHistograms() as a fixed-length embedding.
+
+def run_lbph(dataset):
+    import cv2
+    ids, imgs = [], []
+    for iid, p in iter_images(dataset, 'data/aligned112'):
+        imgs.append(cv2.imread(p, cv2.IMREAD_GRAYSCALE))
+        ids.append(iid)
+    recognizer = cv2.face.LBPHFaceRecognizer_create()
+    recognizer.train(imgs, np.arange(len(imgs)))
+    X = np.stack([h.flatten() for h in recognizer.getHistograms()])
+    save('lbph', dataset, ids, X)
+
+
+# -- fisherface: OpenCV's classic LDA (Fisher discriminant) face recognizer -- unlike
+#    every other hand-crafted family here, this one IS explicitly trained/fit to
+#    maximize between-identity separation (Fisher's discriminant ratio, the same idea
+#    as d') over within-identity variance. It's the classical, non-deep analog of what
+#    ArcFace/CosFace/AdaFace do with a CNN: engineered for high identity discriminability.
+#    London is the only dataset with repeat identities, so the PCA+LDA projection is
+#    fit once on all 1020 London images (102 identities), then applied (frozen, no
+#    refitting) to every dataset -- exactly like a pretrained deep checkpoint, just
+#    "pretrained" in-house on our own identity-labeled data instead of an external corpus.
+
+def _fit_fisherface():
+    import cv2
+    imgs, labels = [], []
+    label_map = {}
+    for iid, p in iter_images('london', 'data/aligned112'):
+        _, fn = iid.split('/')
+        identity = fn.split('_')[0]
+        label_map.setdefault(identity, len(label_map))
+        imgs.append(cv2.imread(p, cv2.IMREAD_GRAYSCALE))
+        labels.append(label_map[identity])
+    rec = cv2.face.FisherFaceRecognizer_create()
+    rec.train(imgs, np.array(labels, dtype=np.int32))
+    return rec.getMean().flatten(), rec.getEigenVectors()
+
+
+def run_fisherface(dataset):
+    import cv2
+    mean, eigvecs = _fit_fisherface()
+    ids, X = [], []
+    for iid, p in iter_images(dataset, 'data/aligned112'):
+        img = cv2.imread(p, cv2.IMREAD_GRAYSCALE)
+        flat = img.flatten().astype(np.float64)
+        X.append((flat - mean) @ eigvecs)
+        ids.append(iid)
+    save('fisherface', dataset, ids, np.stack(X))
+
+
 RUNNERS = dict(facenet=run_facenet, arcface=run_arcface, cosface=run_cosface,
                adaface=run_adaface, fairface=run_fairface, geometric=run_geometric,
-               clip=run_clip)
+               clip=run_clip, dinov2=run_dinov2, blendshapes=run_blendshapes,
+               lbph=run_lbph, fisherface=run_fisherface)
 
 if __name__ == '__main__':
     fam = sys.argv[1]
