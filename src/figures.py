@@ -1,13 +1,13 @@
-"""Generate summary figures from the existing results/*.csv (no new computation).
+"""Generate summary figures from the existing tables/*.csv (no new computation).
 
-results/ holds raw data (CSVs) only; figures are written to presentables/ (same
+tables/ holds raw data (CSVs) only; figures are written to results/ (same
 convention as src/flowchart.py) so each figure has exactly one copy in the repo.
 
 Outputs:
-  presentables/accuracy_by_family.png          grouped bars: accuracy per family x dataset
-  presentables/invariance_and_accuracy_bars.png two-panel: d' and accuracy, same order, aligned
-  presentables/bias_gap_by_family.png          two-panel: ethnicity gap and gender gap, same order
-  presentables/bias_ethnicity_heatmap.png      family x ethnicity-group accuracy grid (MEBeauty)
+  results/accuracy_by_family.png          grouped bars: accuracy per family x dataset
+  results/invariance_and_accuracy_bars.png two-panel: d' and accuracy, same order, aligned
+  results/bias_gap_by_family.png          two-panel: ethnicity gap and gender gap, same order
+  results/bias_ethnicity_heatmap.png      family x ethnicity-group accuracy grid (MEBeauty)
 
 Usage: python src/figures.py
 """
@@ -21,8 +21,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TAB = os.path.join(ROOT, 'tables')
 RES = os.path.join(ROOT, 'results')
-PRES = os.path.join(ROOT, 'presentables')
 
 DATASET_LABEL = {'scut': 'SCUT-FBP5500', 'mebeauty': 'MEBeauty', 'london': 'London'}
 DATASETS = ['scut', 'mebeauty', 'london']
@@ -60,7 +60,7 @@ def legend_handles():
 
 def fig_accuracy_by_family():
     acc = defaultdict(dict)  # family -> dataset -> pearson
-    with open(os.path.join(RES, 'within.csv')) as f:
+    with open(os.path.join(TAB, 'within.csv')) as f:
         for r in csv.DictReader(f):
             if r['probe'] == 'ridge':
                 acc[r['family']][r['dataset']] = float(r['pearson'])
@@ -82,13 +82,13 @@ def fig_accuracy_by_family():
     ax.grid(axis='y', alpha=0.3)
     ax.set_axisbelow(True)
     fig.tight_layout()
-    out = os.path.join(PRES, 'accuracy_by_family.png')
+    out = os.path.join(RES, 'accuracy_by_family.png')
     fig.savefig(out, dpi=150)
     print('wrote', out)
 
 
 def fig_invariance_and_accuracy_bars():
-    rows = list(csv.DictReader(open(os.path.join(RES, 'invariance.csv'))))
+    rows = list(csv.DictReader(open(os.path.join(TAB, 'invariance.csv'))))
     rows.sort(key=lambda r: -float(r['dprime_pose']))
     fams = [r['family'] for r in rows]
     dp = [float(r['dprime_pose']) for r in rows]
@@ -117,7 +117,7 @@ def fig_invariance_and_accuracy_bars():
     ax2.legend(handles=legend_handles(), frameon=False, loc='upper right', fontsize=9)
 
     fig.tight_layout()
-    out = os.path.join(PRES, 'invariance_and_accuracy_bars.png')
+    out = os.path.join(RES, 'invariance_and_accuracy_bars.png')
     fig.savefig(out, dpi=150)
     print('wrote', out)
 
@@ -126,11 +126,11 @@ def fig_bias_gap_bars():
     """Two-panel: mean ethnicity gap (top) and mean gender gap (bottom) by family.
 
     'Gap' = max subgroup Pearson r - min subgroup Pearson r for that family/dataset/
-    attribute (results/bias_summary.csv); averaged here across whichever datasets had
+    attribute (tables/bias_summary.csv); averaged here across whichever datasets had
     >=2 qualifying subgroups for that attribute (ethnicity: scut+mebeauty only --
     London's non-white ethnicity groups are too small to qualify; gender: all 3).
     """
-    rows = list(csv.DictReader(open(os.path.join(RES, 'bias_summary.csv'))))
+    rows = list(csv.DictReader(open(os.path.join(TAB, 'bias_summary.csv'))))
     eth_gap, gender_gap = defaultdict(list), defaultdict(list)
     for r in rows:
         if r['attribute'] == 'ethnicity':
@@ -164,7 +164,7 @@ def fig_bias_gap_bars():
     ax2.legend(handles=legend_handles(), frameon=False, loc='upper right', fontsize=9)
 
     fig.tight_layout()
-    out = os.path.join(PRES, 'bias_gap_by_family.png')
+    out = os.path.join(RES, 'bias_gap_by_family.png')
     fig.savefig(out, dpi=150)
     print('wrote', out)
 
@@ -174,14 +174,14 @@ def fig_bias_ethnicity_heatmap():
     5 ethnicity groups at usable n). Columns ordered by pooled mean r descending, rows
     ordered by mean within-dataset accuracy descending (same order as accuracy_by_family.png).
     """
-    rows = [r for r in csv.DictReader(open(os.path.join(RES, 'bias_ethnicity.csv')))
+    rows = [r for r in csv.DictReader(open(os.path.join(TAB, 'bias_ethnicity.csv')))
             if r['dataset'] == 'mebeauty']
     by_fam = defaultdict(dict)
     for r in rows:
         by_fam[r['family']][r['ethnicity']] = float(r['pearson'])
 
     acc = defaultdict(dict)
-    with open(os.path.join(RES, 'within.csv')) as f:
+    with open(os.path.join(TAB, 'within.csv')) as f:
         for r in csv.DictReader(f):
             if r['probe'] == 'ridge':
                 acc[r['family']][r['dataset']] = float(r['pearson'])
@@ -211,7 +211,7 @@ def fig_bias_ethnicity_heatmap():
                   "(Pearson r, ridge probe, 10-fold CV; columns sorted by mean r)", fontsize=12)
     fig.colorbar(im, ax=ax, label='Pearson r', shrink=0.8)
     fig.tight_layout()
-    out = os.path.join(PRES, 'bias_ethnicity_heatmap.png')
+    out = os.path.join(RES, 'bias_ethnicity_heatmap.png')
     fig.savefig(out, dpi=150)
     print('wrote', out)
 

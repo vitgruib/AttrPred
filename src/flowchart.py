@@ -1,4 +1,4 @@
-"""Render the methodology pipeline as a flowchart (presentables/methodology_flowchart.png).
+"""Render the methodology pipeline as a flowchart (results/methodology_flowchart.png).
 
 Deliberately coarse-grained: shows pipeline *stages*, not every embedding family as its
 own box (that's what RESULTS.md's tables are for). The one place this diagram uses
@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT_DIR = os.path.join(ROOT, 'presentables')
+OUT_DIR = os.path.join(ROOT, 'results')
 os.makedirs(OUT_DIR, exist_ok=True)
 
 STAGE = '#3d4f66'    # single neutral tone for every non-taxonomy box
@@ -144,7 +144,7 @@ def main():
     # ---- final correlation ----
     y9 = 2.5
     final = box(ax, 0, y9, 9.4, 1.4,
-                "Correlate d′ vs. accuracy: pooled (9 trained families)\n+ by-category (4 groups) — results/invariance.csv, category_summary.csv",
+                "Correlate d′ vs. accuracy: pooled (9 trained families)\n+ by-category (4 groups) — tables/invariance.csv, category_summary.csv",
                 STAGE_DARK, fontsize=9)
     arrow(ax, inv, final)
 

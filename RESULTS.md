@@ -292,10 +292,10 @@ families that best isolate appearance from identity (CLIP, DINOv2, FaceNet) are 
 most demographically consistent ones** — being good at the task and being fair across
 groups are not in tension here, unlike the classic fairness/accuracy tradeoff framing.
 
-**Figure:** `presentables/bias_gap_by_family.png` (gap by family, ethnicity + gender),
-`presentables/bias_ethnicity_heatmap.png` (MEBeauty accuracy by ethnicity × family).
-**Tables:** `results/bias_gender.csv`, `results/bias_ethnicity.csv`,
-`results/bias_age.csv`, `results/bias_summary.csv`.
+**Figure:** `results/bias_gap_by_family.png` (gap by family, ethnicity + gender),
+`results/bias_ethnicity_heatmap.png` (MEBeauty accuracy by ethnicity × family).
+**Tables:** `tables/bias_gender.csv`, `tables/bias_ethnicity.csv`,
+`tables/bias_age.csv`, `tables/bias_summary.csv`.
 
 ## Findings
 
@@ -395,9 +395,9 @@ was fit to separate, its position on the far right of the scatter plot is partly
 extreme can you make this look" demonstration rather than a fully independent zero-shot
 data point — its *accuracy* numbers are not affected by this caveat, only its d′.
 
-**Figure:** `presentables/dprime_vs_accuracy.png` (the tradeoff, 9 trained families).
-**Tables:** `results/within.csv`, `results/cross.csv`, `results/invariance.csv`,
-`results/category_summary.csv`.
+**Figure:** `results/dprime_vs_accuracy.png` (the tradeoff, 9 trained families).
+**Tables:** `tables/within.csv`, `tables/cross.csv`, `tables/invariance.csv`,
+`tables/category_summary.csv`.
 
 **5. Demographic accuracy gaps exist in every family, and track loosely with overall
 accuracy rather than trading off against it.** On MEBeauty, Black subgroup accuracy is
@@ -479,9 +479,9 @@ one small, noisy attribute rather than a stronger true effect.
 python src/build_manifest.py            # unified manifest.csv
 python src/preprocess.py                # detect+align -> data/aligned112, data/crops224
 ./run_extract_all.sh                    # 11 families x 3 datasets -> embeddings/*.npz
-./run_analysis.sh                       # ridge probe, invariance -> results/
-python src/figures.py                   # summary figures -> presentables/*.png
-python src/flowchart.py                 # pipeline diagram -> presentables/methodology_flowchart.png
+./run_analysis.sh                       # ridge probe, invariance -> tables/
+python src/figures.py                   # summary figures -> results/*.png
+python src/flowchart.py                 # pipeline diagram -> results/methodology_flowchart.png
 ```
 
 MediaPipe's Blendshapes family additionally requires the system library `libgles2`

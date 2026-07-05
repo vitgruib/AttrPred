@@ -17,8 +17,8 @@ in face-verification benchmarks), unlike a naive variance decomposition which fa
 discriminate among trained models and is not used here.
 
 Then: correlate per-family d' against per-family attractiveness-prediction accuracy
-(mean within-dataset and mean cross-dataset ridge Pearson r from results/within.csv,
-results/cross.csv). The headline correlation is computed over the TRAINED embeddings
+(mean within-dataset and mean cross-dataset ridge Pearson r from tables/within.csv,
+tables/cross.csv). The headline correlation is computed over the TRAINED embeddings
 (see DEEP_FAMILIES): geometric and lbph are hand-crafted/classical with no learning at
 all, never optimized to trade off pose-invariance for anything, so folding them into a
 trend about *trained* invariance vs accuracy dilutes rather than clarifies. Their d'
@@ -36,9 +36,9 @@ from scipy.stats import pearsonr, spearmanr
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EMB = os.path.join(ROOT, 'embeddings')
+TAB = os.path.join(ROOT, 'tables')
 RES = os.path.join(ROOT, 'results')
-PRES = os.path.join(ROOT, 'presentables')
-os.makedirs(RES, exist_ok=True)
+os.makedirs(TAB, exist_ok=True)
 
 FAMILIES = ['facenet', 'arcface', 'cosface', 'adaface', 'fairface', 'geometric', 'clip',
             'dinov2', 'blendshapes', 'lbph', 'fisherface']
@@ -159,21 +159,21 @@ def report_by_category(rows):
         print(f"{s['category']:38s} {s['n']:3d} {s['mean_dprime']:9.2f} "
               f"{s['mean_within_r']:14.3f} {cross_str:>13s}")
 
-    with open(os.path.join(RES, 'category_summary.csv'), 'w', newline='') as f:
+    with open(os.path.join(TAB, 'category_summary.csv'), 'w', newline='') as f:
         w = csv.DictWriter(f, fieldnames=list(summary[0].keys()))
         w.writeheader()
         w.writerows(summary)
-    print('\nwrote results/category_summary.csv')
+    print('\nwrote tables/category_summary.csv')
 
 
 def main():
     within = defaultdict(list)
-    with open(os.path.join(RES, 'within.csv')) as f:
+    with open(os.path.join(TAB, 'within.csv')) as f:
         for r in csv.DictReader(f):
             if r['probe'] == 'ridge':
                 within[r['family']].append(float(r['pearson']))
     cross = defaultdict(list)
-    cpath = os.path.join(RES, 'cross.csv')
+    cpath = os.path.join(TAB, 'cross.csv')
     if os.path.exists(cpath):
         with open(cpath) as f:
             for r in csv.DictReader(f):
@@ -196,7 +196,7 @@ def main():
         print(f'{fam:10s} dprime={dp:6.2f}  mean_within_r={mean_within:.3f}  '
               f'mean_cross_r={cross_str}', flush=True)
 
-    with open(os.path.join(RES, 'invariance.csv'), 'w', newline='') as f:
+    with open(os.path.join(TAB, 'invariance.csv'), 'w', newline='') as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         w.writeheader()
         w.writerows(rows)
@@ -224,8 +224,8 @@ def main():
                  f"Pearson r={pr:.2f} (p={pp:.3f})")
     ax.grid(alpha=0.3)
     fig.tight_layout()
-    fig.savefig(os.path.join(PRES, 'dprime_vs_accuracy.png'), dpi=150)
-    print('\nwrote results/invariance.csv and presentables/dprime_vs_accuracy.png')
+    fig.savefig(os.path.join(RES, 'dprime_vs_accuracy.png'), dpi=150)
+    print('\nwrote tables/invariance.csv and results/dprime_vs_accuracy.png')
 
 
 if __name__ == '__main__':

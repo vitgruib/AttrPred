@@ -24,10 +24,10 @@ A subgroup is only reported if it has >= 20 rated images (same floor the origina
 bias analysis used) -- below that, a Pearson r is too noisy to be worth reporting.
 
 Outputs:
-  results/bias_gender.csv     family, dataset, gender, n, pearson
-  results/bias_ethnicity.csv  family, dataset, ethnicity, n, pearson
-  results/bias_age.csv        family, dataset(london only), age_bucket, n, pearson
-  results/bias_summary.csv    family, dataset, attribute, n_groups, gap
+  tables/bias_gender.csv     family, dataset, gender, n, pearson
+  tables/bias_ethnicity.csv  family, dataset, ethnicity, n, pearson
+  tables/bias_age.csv        family, dataset(london only), age_bucket, n, pearson
+  tables/bias_summary.csv    family, dataset, attribute, n_groups, gap
     (gap = max subgroup pearson - min subgroup pearson; only rows with >=2 qualifying
     subgroups get a gap -- this is the single headline number per family/dataset/attribute)
 
@@ -41,7 +41,7 @@ import numpy as np
 from scipy.stats import pearsonr
 from sklearn.model_selection import KFold
 
-from evaluate import FAMILIES, DATASETS, SEED, RES, load_xy, make_ridge
+from evaluate import FAMILIES, DATASETS, SEED, TAB, load_xy, make_ridge
 
 MIN_SUBGROUP_N = 20
 
@@ -126,7 +126,7 @@ def main():
             print(f'{fam:10s} {ds:9s} done', flush=True)
 
     def write(name, rows):
-        out = os.path.join(RES, f'{name}.csv')
+        out = os.path.join(TAB, f'{name}.csv')
         if not rows:
             print(f'skipped {out} (no qualifying subgroups)')
             return

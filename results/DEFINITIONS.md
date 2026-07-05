@@ -1,7 +1,7 @@
 # Definitions
 
 Rigorous definitions of every term used in this study's figures and results. Read this
-before interpreting any number in `presentables/` or `results/`.
+before interpreting any number in `results/` or `tables/`.
 
 ---
 
@@ -204,13 +204,13 @@ low d′ *and* low accuracy, because its 52-d representation lacks the capacity 
 appearance regardless of what it was or wasn't trained to discard), and that a 9-point
 correlation is exquisitely sensitive to which 9 points you pick. The **by-category
 comparison** (grouping families into deep/classical × identity-trained/not, see
-`results/category_summary.csv`) shows the same effect more robustly: both
+`tables/category_summary.csv`) shows the same effect more robustly: both
 identity-trained mechanisms (deep margin-CNNs, classical Fisherface) underperform their
 non-identity-trained counterparts within their own mechanism, without relying on a
 single continuous regression line. With only 9–11 families total, every one of these
 correlations is a small-sample estimate — suggestive and mechanistically interpretable,
 not a tight
-statistical guarantee. See `results/invariance.csv` for the exact per-family numbers and
+statistical guarantee. See `tables/invariance.csv` for the exact per-family numbers and
 `RESULTS.md` (repository root) for the full write-up, caveats, and limitations.
 
 ---
@@ -229,8 +229,8 @@ it says nothing about whether the subgroups' true attractiveness distributions d
 only whether the model's predictions track the human ratings equally well across groups.
 Ethnicity groups differ in both count and definition across datasets (see `RESULTS.md`'s
 Demographic bias section), so gaps are only ever compared within one dataset, never
-pooled across datasets. See `results/bias_gender.csv`, `results/bias_ethnicity.csv`,
-`results/bias_age.csv` for every per-subgroup r, and `results/bias_summary.csv` for the
+pooled across datasets. See `tables/bias_gender.csv`, `tables/bias_ethnicity.csv`,
+`tables/bias_age.csv` for every per-subgroup r, and `tables/bias_summary.csv` for the
 gap itself, per family/dataset/attribute.
 
 ---

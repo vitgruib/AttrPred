@@ -13,7 +13,7 @@ Cross-dataset:  train on all of A, test on all of B (scores z-normalized per dat
 
 Only rated==1 rows are used (London: neutral_front only).
 
-Outputs: results/within.csv, results/cross.csv
+Outputs: tables/within.csv, tables/cross.csv
 Usage: python src/evaluate.py
 """
 import csv
@@ -28,8 +28,8 @@ from sklearn.preprocessing import StandardScaler
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EMB = os.path.join(ROOT, 'embeddings')
-RES = os.path.join(ROOT, 'results')
-os.makedirs(RES, exist_ok=True)
+TAB = os.path.join(ROOT, 'tables')
+os.makedirs(TAB, exist_ok=True)
 
 FAMILIES = ['facenet', 'arcface', 'cosface', 'adaface', 'fairface', 'geometric', 'clip',
             'dinov2', 'blendshapes', 'lbph', 'fisherface']
@@ -124,5 +124,5 @@ def write(path, rows):
 if __name__ == '__main__':
     within_rows = within_dataset('ridge', make_ridge)
     cross_rows = cross_dataset('ridge', make_ridge)
-    write(os.path.join(RES, 'within.csv'), within_rows)
-    write(os.path.join(RES, 'cross.csv'), cross_rows)
+    write(os.path.join(TAB, 'within.csv'), within_rows)
+    write(os.path.join(TAB, 'cross.csv'), cross_rows)
