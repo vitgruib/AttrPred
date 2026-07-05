@@ -292,8 +292,8 @@ families that best isolate appearance from identity (CLIP, DINOv2, FaceNet) are 
 most demographically consistent ones** — being good at the task and being fair across
 groups are not in tension here, unlike the classic fairness/accuracy tradeoff framing.
 
-**Figure:** `results/bias_gap_by_family.png` (gap by family, ethnicity + gender),
-`results/bias_ethnicity_heatmap.png` (MEBeauty accuracy by ethnicity × family).
+**Figure:** `presentables/bias_gap_by_family.png` (gap by family, ethnicity + gender),
+`presentables/bias_ethnicity_heatmap.png` (MEBeauty accuracy by ethnicity × family).
 **Tables:** `results/bias_gender.csv`, `results/bias_ethnicity.csv`,
 `results/bias_age.csv`, `results/bias_summary.csv`.
 
@@ -395,7 +395,7 @@ was fit to separate, its position on the far right of the scatter plot is partly
 extreme can you make this look" demonstration rather than a fully independent zero-shot
 data point — its *accuracy* numbers are not affected by this caveat, only its d′.
 
-**Figure:** `results/dprime_vs_accuracy.png` (the tradeoff, 9 trained families).
+**Figure:** `presentables/dprime_vs_accuracy.png` (the tradeoff, 9 trained families).
 **Tables:** `results/within.csv`, `results/cross.csv`, `results/invariance.csv`,
 `results/category_summary.csv`.
 
@@ -480,7 +480,7 @@ python src/build_manifest.py            # unified manifest.csv
 python src/preprocess.py                # detect+align -> data/aligned112, data/crops224
 ./run_extract_all.sh                    # 11 families x 3 datasets -> embeddings/*.npz
 ./run_analysis.sh                       # ridge probe, invariance -> results/
-python src/figures.py                   # summary figures -> results/*.png
+python src/figures.py                   # summary figures -> presentables/*.png
 python src/flowchart.py                 # pipeline diagram -> presentables/methodology_flowchart.png
 ```
 

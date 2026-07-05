@@ -1,10 +1,13 @@
 """Generate summary figures from the existing results/*.csv (no new computation).
 
+results/ holds raw data (CSVs) only; figures are written to presentables/ (same
+convention as src/flowchart.py) so each figure has exactly one copy in the repo.
+
 Outputs:
-  results/accuracy_by_family.png          grouped bars: accuracy per family x dataset
-  results/invariance_and_accuracy_bars.png two-panel: d' and accuracy, same order, aligned
-  results/bias_gap_by_family.png          two-panel: ethnicity gap and gender gap, same order
-  results/bias_ethnicity_heatmap.png      family x ethnicity-group accuracy grid (MEBeauty)
+  presentables/accuracy_by_family.png          grouped bars: accuracy per family x dataset
+  presentables/invariance_and_accuracy_bars.png two-panel: d' and accuracy, same order, aligned
+  presentables/bias_gap_by_family.png          two-panel: ethnicity gap and gender gap, same order
+  presentables/bias_ethnicity_heatmap.png      family x ethnicity-group accuracy grid (MEBeauty)
 
 Usage: python src/figures.py
 """
@@ -19,6 +22,7 @@ import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RES = os.path.join(ROOT, 'results')
+PRES = os.path.join(ROOT, 'presentables')
 
 DATASET_LABEL = {'scut': 'SCUT-FBP5500', 'mebeauty': 'MEBeauty', 'london': 'London'}
 DATASETS = ['scut', 'mebeauty', 'london']
@@ -78,7 +82,7 @@ def fig_accuracy_by_family():
     ax.grid(axis='y', alpha=0.3)
     ax.set_axisbelow(True)
     fig.tight_layout()
-    out = os.path.join(RES, 'accuracy_by_family.png')
+    out = os.path.join(PRES, 'accuracy_by_family.png')
     fig.savefig(out, dpi=150)
     print('wrote', out)
 
@@ -113,7 +117,7 @@ def fig_invariance_and_accuracy_bars():
     ax2.legend(handles=legend_handles(), frameon=False, loc='upper right', fontsize=9)
 
     fig.tight_layout()
-    out = os.path.join(RES, 'invariance_and_accuracy_bars.png')
+    out = os.path.join(PRES, 'invariance_and_accuracy_bars.png')
     fig.savefig(out, dpi=150)
     print('wrote', out)
 
@@ -160,7 +164,7 @@ def fig_bias_gap_bars():
     ax2.legend(handles=legend_handles(), frameon=False, loc='upper right', fontsize=9)
 
     fig.tight_layout()
-    out = os.path.join(RES, 'bias_gap_by_family.png')
+    out = os.path.join(PRES, 'bias_gap_by_family.png')
     fig.savefig(out, dpi=150)
     print('wrote', out)
 
@@ -207,7 +211,7 @@ def fig_bias_ethnicity_heatmap():
                   "(Pearson r, ridge probe, 10-fold CV; columns sorted by mean r)", fontsize=12)
     fig.colorbar(im, ax=ax, label='Pearson r', shrink=0.8)
     fig.tight_layout()
-    out = os.path.join(RES, 'bias_ethnicity_heatmap.png')
+    out = os.path.join(PRES, 'bias_ethnicity_heatmap.png')
     fig.savefig(out, dpi=150)
     print('wrote', out)
 
