@@ -2,7 +2,7 @@
 
 *A fun passion project about how good AI was at predicting attractiveness. Just a random unserious rabbit hole.*
 
-Face-recognition models are trained to be pose-invariant (sometimes I call it "identity-trained)
+Face-recognition models are trained to be pose-invariant (sometimes I call it "identity-trained")
 — a photo of you from the side should produce basically the same embedding as one from the front. 
 To pull that off, the model has to throw away appearance information it doesn't need for telling 
 people apart. I wanted to know if that thrown-away information includes stuff that matters for judging
