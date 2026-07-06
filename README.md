@@ -1,10 +1,6 @@
 # Do Face-Recognition Embeddings Differ in How Well They Predict Attractiveness?
 
-*A fun passion project — I got curious whether face embeddings trained to be pose-invariant
-(i.e. trained to throw away appearance info that doesn't help tell identities apart) end up
-worse at predicting how attractive a face looks, since that's exactly the kind of appearance
-signal they're taught to discard. Not affiliated with any lab or coursework — just something
-I wanted to actually measure instead of wondering about.*
+*A fun passion project about how good AI was at predicting attractiveness. Just a random unserious rabbit hole.*
 
 ## TL;DR
 
@@ -60,6 +56,3 @@ See `RESULTS.md` for the full method and `FEASIBILITY.md` for dataset/checkpoint
 
 ---
 
-*This was done for fun on the side, not for publication or any formal research program —
-treat it as an enthusiast's honest attempt at a rigorous-ish analysis, caveats included, not
-peer-reviewed science.*
