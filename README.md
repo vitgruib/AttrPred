@@ -2,12 +2,11 @@
 
 *A fun passion project about how good AI was at predicting attractiveness. Just a random unserious rabbit hole.*
 
-Face-recognition models are trained to be pose-invariant — a photo of you from the side
-should produce basically the same embedding as one from the front. To pull that off, the
-model has to throw away appearance information it doesn't need for telling people apart.
-I wanted to know if that thrown-away information includes stuff that matters for judging
-how attractive a face looks, since that's a pretty different task than "is this the same
-person."
+Face-recognition models are trained to be pose-invariant (sometimes I call it "identity-trained)
+— a photo of you from the side should produce basically the same embedding as one from the front. 
+To pull that off, the model has to throw away appearance information it doesn't need for telling 
+people apart. I wanted to know if that thrown-away information includes stuff that matters for judging
+how attractive a face looks, since that's a pretty different task than "is this the same person."
 
 So I ran the experiment. 11 different face-embedding families (deep identity CNNs, a
 couple of classical non-deep methods, plus general-purpose foundation models like CLIP
