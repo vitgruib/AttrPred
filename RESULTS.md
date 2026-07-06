@@ -293,7 +293,10 @@ most demographically consistent ones** — being good at the task and being fair
 groups are not in tension here, unlike the classic fairness/accuracy tradeoff framing.
 
 **Figure:** `results/bias_gap_by_family.png` (gap by family, ethnicity + gender),
-`results/bias_ethnicity_heatmap.png` (MEBeauty accuracy by ethnicity × family).
+`results/bias_ethnicity_heatmap.png` (MEBeauty accuracy by ethnicity × family),
+`results/bias_aggregate_by_ethnicity.png` (single n-weighted accuracy bar per
+canonical ethnicity group, pooled across all 11 families and every dataset that
+group clears the ≥20-image floor in).
 **Tables:** `tables/bias_gender.csv`, `tables/bias_ethnicity.csv`,
 `tables/bias_age.csv`, `tables/bias_summary.csv`.
 
@@ -395,7 +398,9 @@ was fit to separate, its position on the far right of the scatter plot is partly
 extreme can you make this look" demonstration rather than a fully independent zero-shot
 data point — its *accuracy* numbers are not affected by this caveat, only its d′.
 
-**Figure:** `results/dprime_vs_accuracy.png` (the tradeoff, 9 trained families).
+**Figure:** `results/dprime_vs_accuracy.png` (the tradeoff, 9 trained families),
+`results/accuracy_aggregate_by_family.png` (single mean-accuracy bar per family,
+across all 3 datasets, colored by the deep/classical × identity-trained/not category).
 **Tables:** `tables/within.csv`, `tables/cross.csv`, `tables/invariance.csv`,
 `tables/category_summary.csv`.
 

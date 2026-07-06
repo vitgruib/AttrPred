@@ -8,6 +8,8 @@ Outputs:
   results/invariance_and_accuracy_bars.png two-panel: d' and accuracy, same order, aligned
   results/bias_gap_by_family.png          two-panel: ethnicity gap and gender gap, same order
   results/bias_ethnicity_heatmap.png      family x ethnicity-group accuracy grid (MEBeauty)
+  results/accuracy_aggregate_by_family.png single bar per family, mean accuracy across all 3 datasets
+  results/bias_aggregate_by_ethnicity.png  single bar per ethnicity group, pooled across all families/datasets
 
 Usage: python src/figures.py
 """
@@ -43,6 +45,25 @@ GROUP_LABEL = {
     'geometric': 'classical, hand-crafted (untrained)', 'lbph': 'classical, hand-crafted (untrained)',
 }
 DISPLAY_NAME = {'clip': 'CLIP', 'dinov2': 'DINOv2', 'lbph': 'LBPH'}
+
+# Canonical ethnicity groups, mapping each dataset's own (differently-granular) labels
+# onto a shared name where the underlying group is genuinely the same population, so
+# they can be pooled across datasets. Only (dataset, ethnicity) pairs that actually
+# clear the >=20-image floor in tables/bias_ethnicity.csv appear here -- e.g. London's
+# east_asian/west_asian/black groups never qualify (n=9/10/13), so London only
+# contributes to White/Caucasian. Hispanic/Indian have no cross-dataset counterpart at
+# all (MEBeauty-only) and are still shown, flagged as such.
+ETHNICITY_CANONICAL = {
+    ('scut', 'caucasian'): 'White/Caucasian',
+    ('mebeauty', 'caucasian'): 'White/Caucasian',
+    ('london', 'white'): 'White/Caucasian',
+    ('scut', 'asian'): 'Asian',
+    ('mebeauty', 'asian'): 'Asian',
+    ('mebeauty', 'black'): 'Black',
+    ('mebeauty', 'hispanic'): 'Hispanic*',
+    ('mebeauty', 'indian'): 'Indian*',
+}
+ETHNICITY_SINGLE_DATASET = {'Hispanic*', 'Indian*'}  # MEBeauty-only, footnoted in the figure
 
 
 def display(fam):
@@ -216,8 +237,83 @@ def fig_bias_ethnicity_heatmap():
     print('wrote', out)
 
 
+def fig_accuracy_aggregate_by_family():
+    """Single aggregate accuracy score per family: mean within-dataset Pearson r
+    across all 3 datasets (same 'mean' number reported in RESULTS.md's within-dataset
+    table), one bar per family instead of accuracy_by_family.png's per-dataset bars.
+    """
+    acc = defaultdict(list)
+    with open(os.path.join(TAB, 'within.csv')) as f:
+        for r in csv.DictReader(f):
+            if r['probe'] == 'ridge':
+                acc[r['family']].append(float(r['pearson']))
+    agg = {f: np.mean(v) for f, v in acc.items()}
+    fams = sorted(agg, key=lambda f: -agg[f])
+    colors = [GROUP_COLOR[f] for f in fams]
+    labels = [display(f) for f in fams]
+    x = np.arange(len(fams))
+
+    fig, ax = plt.subplots(figsize=(9, 5.5))
+    ax.bar(x, [agg[f] for f in fams], color=colors)
+    for i, f in enumerate(fams):
+        ax.text(i, agg[f] + 0.015, f'{agg[f]:.2f}', ha='center', fontsize=8)
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=20, ha='right')
+    ax.set_ylabel('Mean within-dataset accuracy\n(Pearson r, averaged across SCUT/MEBeauty/London)')
+    ax.set_title('Aggregate accuracy by family (across all 3 datasets)')
+    ax.legend(handles=legend_handles(), frameon=False, loc='upper right', fontsize=9)
+    ax.grid(axis='y', alpha=0.3)
+    ax.set_axisbelow(True)
+    fig.tight_layout()
+    out = os.path.join(RES, 'accuracy_aggregate_by_family.png')
+    fig.savefig(out, dpi=150)
+    print('wrote', out)
+
+
+def fig_bias_aggregate_by_ethnicity():
+    """Single aggregate accuracy score per canonical ethnicity group, pooled across
+    every (family, dataset) row that maps to it (see ETHNICITY_CANONICAL), weighted by
+    each row's subgroup n. Since n only varies by dataset (all 11 families share the
+    same subgroup image count within one dataset), this is equivalent to averaging
+    unweighted across families within a dataset, then combining datasets weighted by
+    how many images support that group there.
+    """
+    rows = list(csv.DictReader(open(os.path.join(TAB, 'bias_ethnicity.csv'))))
+    weighted_sum, weight_total = defaultdict(float), defaultdict(float)
+    for r in rows:
+        canon = ETHNICITY_CANONICAL.get((r['dataset'], r['ethnicity']))
+        if canon is None:
+            continue
+        n = float(r['n'])
+        weighted_sum[canon] += float(r['pearson']) * n
+        weight_total[canon] += n
+    agg = {g: weighted_sum[g] / weight_total[g] for g in weighted_sum}
+    groups = sorted(agg, key=lambda g: -agg[g])
+    tick_labels = [g + ('\n(MEBeauty only)' if g in ETHNICITY_SINGLE_DATASET else '') for g in groups]
+
+    fig, ax = plt.subplots(figsize=(7.5, 5.5))
+    ax.bar(np.arange(len(groups)), [agg[g] for g in groups], color='#4a7c59')
+    for i, g in enumerate(groups):
+        ax.text(i, agg[g] + 0.01, f'{agg[g]:.3f}', ha='center', fontsize=9)
+
+    ax.set_xticks(np.arange(len(groups)))
+    ax.set_xticklabels(tick_labels, fontsize=9)
+    ax.set_ylabel('Aggregate accuracy\n(Pearson r, n-weighted mean across families & datasets)')
+    ax.set_title("Aggregate accuracy by ethnicity group\n"
+                 "(all 11 families, pooled across whichever datasets have that group)", fontsize=12)
+    ax.grid(axis='y', alpha=0.3)
+    ax.set_axisbelow(True)
+    fig.tight_layout()
+    out = os.path.join(RES, 'bias_aggregate_by_ethnicity.png')
+    fig.savefig(out, dpi=150)
+    print('wrote', out)
+
+
 if __name__ == '__main__':
     fig_accuracy_by_family()
     fig_invariance_and_accuracy_bars()
     fig_bias_gap_bars()
     fig_bias_ethnicity_heatmap()
+    fig_accuracy_aggregate_by_family()
+    fig_bias_aggregate_by_ethnicity()

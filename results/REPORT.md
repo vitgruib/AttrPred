@@ -62,6 +62,7 @@ ArcFace and AdaFace on this task — direct evidence that what matters is the tr
 
 ![accuracy by family](accuracy_by_family.png)
 ![invariance vs accuracy](dprime_vs_accuracy.png)
+![aggregate accuracy by family](accuracy_aggregate_by_family.png)
 
 **5. Demographic gaps exist in every family — and they track *with* accuracy, not
 against it.** On MEBeauty, Black subgroup accuracy is the lowest of 5 ethnicity groups
@@ -75,6 +76,7 @@ small-sample effect, not necessarily a bigger true disparity.
 
 ![bias gap by family](bias_gap_by_family.png)
 ![MEBeauty ethnicity heatmap](bias_ethnicity_heatmap.png)
+![aggregate accuracy by ethnicity group](bias_aggregate_by_ethnicity.png)
 
 ## Limitations (see `RESULTS.md` for full detail)
 
