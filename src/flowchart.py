@@ -1,7 +1,7 @@
-"""Render the methodology pipeline as a flowchart (results/methodology_flowchart.png).
+"""Render the methodology pipeline as a flowchart (figures/methodology_flowchart.png).
 
 Deliberately coarse-grained: shows pipeline *stages*, not every embedding family as its
-own box (that's what RESULTS.md's tables are for). The one place this diagram uses
+own box (that's what README.md's tables are for). The one place this diagram uses
 color is the embedding-family taxonomy, because that grouping is the actual finding of
 the study -- everything else is a single neutral tone.
 
@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT_DIR = os.path.join(ROOT, 'results')
+OUT_DIR = os.path.join(ROOT, 'figures')
 os.makedirs(OUT_DIR, exist_ok=True)
 
 STAGE = '#3d4f66'    # single neutral tone for every non-taxonomy box

@@ -37,7 +37,7 @@ from scipy.stats import pearsonr, spearmanr
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EMB = os.path.join(ROOT, 'embeddings')
 TAB = os.path.join(ROOT, 'tables')
-RES = os.path.join(ROOT, 'results')
+RES = os.path.join(ROOT, 'figures')
 os.makedirs(TAB, exist_ok=True)
 
 FAMILIES = ['facenet', 'arcface', 'cosface', 'adaface', 'fairface', 'geometric', 'clip',
@@ -225,7 +225,7 @@ def main():
     ax.grid(alpha=0.3)
     fig.tight_layout()
     fig.savefig(os.path.join(RES, 'dprime_vs_accuracy.png'), dpi=150)
-    print('\nwrote tables/invariance.csv and results/dprime_vs_accuracy.png')
+    print('\nwrote tables/invariance.csv and figures/dprime_vs_accuracy.png')
 
 
 if __name__ == '__main__':

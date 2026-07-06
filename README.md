@@ -1,65 +1,66 @@
 # Do Face-Recognition Embeddings Differ in How Well They Predict Attractiveness?
 
-*A fun passion project — I got curious whether face embeddings trained to be pose-invariant
-(i.e. trained to throw away appearance info that doesn't help tell identities apart) end up
-worse at predicting how attractive a face looks, since that's exactly the kind of appearance
-signal they're taught to discard. Not affiliated with any lab or coursework — just something
-I wanted to actually measure instead of wondering about.*
+Face-recognition models are trained to be pose-invariant — a photo of you from the side
+should produce basically the same embedding as one from the front. To pull that off, the
+model has to throw away appearance information it doesn't need for telling people apart.
+I wanted to know if that thrown-away information includes stuff that matters for judging
+how attractive a face looks, since that's a pretty different task than "is this the same
+person."
 
-## TL;DR
+So I ran the experiment. 11 different face-embedding families (deep identity CNNs, a
+couple of classical non-deep methods, plus general-purpose foundation models like CLIP
+and DINOv2), tested against 3 datasets of human attractiveness ratings (SCUT-FBP5500,
+MEBeauty, the Face Research Lab London Set). Same frozen embedding into the same ridge
+regression probe every time, so the only thing that changes is what the embedding
+captured, not how good the downstream model is.
 
-I tested 11 face-embedding families (deep identity-recognition CNNs, foundation models like
-CLIP/DINOv2, and two classical non-deep baselines) against 3 human-rated attractiveness
-datasets (SCUT-FBP5500, MEBeauty, Face Research Lab London Set), using an identical frozen
-embedding → ridge regression probe for every family so the comparison isolates what each
-embedding *encodes* rather than how good its predictor is.
+![pipeline overview](figures/methodology_flowchart.png)
 
-**Headline findings:**
+## What I found
 
-1. **The tradeoff is real, and shows up most cleanly as a category effect.** Split families
-   into (deep vs. classical) × (trained for identity vs. not) — in *both* mechanisms, the
-   identity-trained variant is worse at predicting attractiveness than its non-identity
-   counterpart. The single pooled correlation number is fragile (swings from r=−0.68 to
-   r=−0.11 to r=−0.56 depending which families are included), but the categorical comparison
-   holds up.
-2. **Foundation models win, and it's not about text.** CLIP is the best predictor on every
-   dataset. DINOv2 — self-supervised, no text, no labels, no identity signal at all — is a
-   close second, beating every dedicated face-recognition model. What they share is simply
-   never being trained to discard appearance.
-3. **Fisherface and Blendshapes tie for worst, for opposite reasons.** Fisherface (classical
-   linear discriminant, explicitly maximizing identity separation) confirms the tradeoff
-   directly. Blendshapes (52 hand-named expression values, never trained for identity) shows
-   that low pose-discriminability alone isn't enough if the representation is too
-   low-dimensional to carry appearance info in the first place.
-4. **A 2006-vintage classical method (LBPH) beats several deep face-recognition CNNs**
-   (ArcFace, AdaFace) at this task — evidence it's the training *objective*, not model
-   sophistication, that matters.
-5. **Demographic accuracy gaps exist in every family, and track *with* overall accuracy, not
-   against it.** Black-subgroup accuracy is lowest in 8/11 families on MEBeauty. The most
-   accurate families (CLIP, FaceNet, DINOv2) also have the smallest demographic gaps — no
-   accuracy/fairness tradeoff shows up here.
+![aggregate accuracy by family](figures/accuracy_aggregate_by_family.png)
 
-## Read more
+- **Yes, there's a tradeoff, and it shows up cleanest as a category effect.** Group the
+  families into deep vs. classical, and identity-trained vs. not — in both cases, the
+  identity-trained version loses to its non-identity counterpart.
+- **CLIP wins, and it's not because of the text supervision.** CLIP is best on every
+  dataset. DINOv2 is a close second despite having zero labels, zero text, and zero
+  identity signal during training. What they have in common is just that neither was ever
+  told to discard appearance.
+- **Fisherface and Blendshapes are both terrible, for opposite reasons.** Fisherface is a
+  classical method explicitly built to maximize identity separation, and it pays for that
+  hard. Blendshapes never optimized for identity at all, but it's only 52 numbers, so
+  there's not enough room left over to encode appearance either.
+- **A 2006 texture-histogram method (LBPH) beats ArcFace and AdaFace.** No neural network,
+  no learned weights, and it still does better than two "modern" face-recognition CNNs at
+  this. It really does come down to what the model was trained to throw away, not how
+  fancy it is.
 
-- [`results/REPORT.md`](results/REPORT.md) — condensed write-up with figures
-- [`RESULTS.md`](RESULTS.md) — full method, every table, every caveat and limitation
-- [`FEASIBILITY.md`](FEASIBILITY.md) — early scoping notes (datasets, checkpoints, what was ruled out)
+![invariance vs accuracy](figures/dprime_vs_accuracy.png)
 
-## Reproducing
+- **Demographic accuracy gaps show up everywhere, but they don't trade off against
+  overall accuracy.** On MEBeauty, Black faces get the lowest accuracy in 8 of 11
+  families. The families that are best overall (CLIP, FaceNet, DINOv2) also have the
+  smallest gaps between groups — so being accurate and being consistent across groups
+  aren't in tension here, at least not in this data.
+
+![MEBeauty ethnicity heatmap](figures/bias_ethnicity_heatmap.png)
+
+## Running it yourself
 
 ```
 python src/build_manifest.py            # unified manifest.csv
 python src/preprocess.py                # detect+align -> data/aligned112, data/crops224
 ./run_extract_all.sh                    # 11 families x 3 datasets -> embeddings/*.npz
 ./run_analysis.sh                       # ridge probe, invariance -> tables/
-python src/figures.py                   # summary figures -> results/*.png
-python src/flowchart.py                 # pipeline diagram -> results/methodology_flowchart.png
+python src/figures.py                   # summary figures -> figures/*.png
+python src/flowchart.py                 # pipeline diagram -> figures/methodology_flowchart.png
 ```
 
-See `RESULTS.md` for the full method and `FEASIBILITY.md` for dataset/checkpoint sources.
+`tables/` has the raw numbers (per-family, per-dataset accuracy, invariance scores,
+demographic gaps) if you want to dig past the headline figures above.
 
 ---
 
-*This was done for fun on the side, not for publication or any formal research program —
-treat it as an enthusiast's honest attempt at a rigorous-ish analysis, caveats included, not
-peer-reviewed science.*
+This was just a fun little side project done out of curiosity, not intended for
+publications or formal research programs. Not peer reviewed :p

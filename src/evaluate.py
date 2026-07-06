@@ -3,7 +3,7 @@
 Probe: ridge regression, alpha tuned by inner 3-fold CV. Kept deliberately simple
 (linear) and identical across all families so the comparison isolates what the
 frozen embeddings encode, not how much capacity the downstream predictor has.
-(An MLP secondary probe was tried and dropped -- see README/RESULTS.md for why:
+(An MLP secondary probe was tried and dropped -- see README.md for why:
 it lost to ridge on every family/dataset, badly so on the small London set, i.e.
 it overfit rather than finding real non-linear signal ridge was missing.)
 

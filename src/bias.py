@@ -12,7 +12,7 @@ Subgroups analyzed:
   - gender: all 3 datasets (native label in manifest.csv)
   - ethnicity: all 3 datasets (native label; category granularity differs a lot --
     SCUT is binary asian/caucasian, MEBeauty has 5 groups, London has 5 -- so gaps are
-    only compared within a dataset, never across datasets, see RESULTS.md)
+    only compared within a dataset, never across datasets, see README.md)
   - age: London only. SCUT and MEBeauty have no ground-truth age label at all; rather
     than estimate age with a separate pretrained model (a noisy, model-derived proxy
     that would itself be a new confound), age-subgroup analysis is restricted to the one

@@ -1,15 +1,15 @@
 """Generate summary figures from the existing tables/*.csv (no new computation).
 
-tables/ holds raw data (CSVs) only; figures are written to results/ (same
-convention as src/flowchart.py) so each figure has exactly one copy in the repo.
+tables/ holds raw data (CSVs) only; figures are written to figures/ so each
+figure has exactly one copy in the repo.
 
 Outputs:
-  results/accuracy_by_family.png          grouped bars: accuracy per family x dataset
-  results/invariance_and_accuracy_bars.png two-panel: d' and accuracy, same order, aligned
-  results/bias_gap_by_family.png          two-panel: ethnicity gap and gender gap, same order
-  results/bias_ethnicity_heatmap.png      family x ethnicity-group accuracy grid (MEBeauty)
-  results/accuracy_aggregate_by_family.png single bar per family, mean accuracy across all 3 datasets
-  results/bias_aggregate_by_ethnicity.png  single bar per ethnicity group, pooled across all families/datasets
+  figures/accuracy_by_family.png          grouped bars: accuracy per family x dataset
+  figures/invariance_and_accuracy_bars.png two-panel: d' and accuracy, same order, aligned
+  figures/bias_gap_by_family.png          two-panel: ethnicity gap and gender gap, same order
+  figures/bias_ethnicity_heatmap.png      family x ethnicity-group accuracy grid (MEBeauty)
+  figures/accuracy_aggregate_by_family.png single bar per family, mean accuracy across all 3 datasets
+  figures/bias_aggregate_by_ethnicity.png  single bar per ethnicity group, pooled across all families/datasets
 
 Usage: python src/figures.py
 """
@@ -24,7 +24,7 @@ import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TAB = os.path.join(ROOT, 'tables')
-RES = os.path.join(ROOT, 'results')
+RES = os.path.join(ROOT, 'figures')
 
 DATASET_LABEL = {'scut': 'SCUT-FBP5500', 'mebeauty': 'MEBeauty', 'london': 'London'}
 DATASETS = ['scut', 'mebeauty', 'london']
@@ -239,7 +239,7 @@ def fig_bias_ethnicity_heatmap():
 
 def fig_accuracy_aggregate_by_family():
     """Single aggregate accuracy score per family: mean within-dataset Pearson r
-    across all 3 datasets (same 'mean' number reported in RESULTS.md's within-dataset
+    across all 3 datasets (same 'mean' number reported in README.md's within-dataset
     table), one bar per family instead of accuracy_by_family.png's per-dataset bars.
     """
     acc = defaultdict(list)
