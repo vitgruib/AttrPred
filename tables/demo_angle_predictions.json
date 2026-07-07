@@ -1,0 +1,57 @@
+{
+  "facenet": {
+    "frontal": 4.230657577514648,
+    "threequarter": 3.991773843765259,
+    "profile": 3.6658995151519775
+  },
+  "arcface": {
+    "frontal": 3.6888587474823,
+    "threequarter": 3.5926690101623535,
+    "profile": 3.6993367671966553
+  },
+  "cosface": {
+    "frontal": 4.389504432678223,
+    "threequarter": 4.216893196105957,
+    "profile": 4.797802925109863
+  },
+  "adaface": {
+    "frontal": 4.662999153137207,
+    "threequarter": 4.376547813415527,
+    "profile": 4.4427032470703125
+  },
+  "fairface": {
+    "frontal": 4.037625312805176,
+    "threequarter": 3.6794867515563965,
+    "profile": 3.4786970615386963
+  },
+  "geometric": {
+    "frontal": 3.3399834632873535,
+    "threequarter": 3.0329086780548096,
+    "profile": 6.863827228546143
+  },
+  "clip": {
+    "frontal": 3.6137852668762207,
+    "threequarter": 3.5644237995147705,
+    "profile": 3.5015382766723633
+  },
+  "dinov2": {
+    "frontal": 3.7426629066467285,
+    "threequarter": 3.3559441566467285,
+    "profile": 3.2137999534606934
+  },
+  "blendshapes": {
+    "frontal": 2.573883533477783,
+    "threequarter": 3.1095566749572754,
+    "profile": 2.1869683265686035
+  },
+  "lbph": {
+    "frontal": 3.3461484909057617,
+    "threequarter": 2.9733710289001465,
+    "profile": 3.946697235107422
+  },
+  "fisherface": {
+    "frontal": 1.6477169368669977,
+    "threequarter": 2.1164650611334457,
+    "profile": 2.23926490970852
+  }
+}

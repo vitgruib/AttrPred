@@ -17,6 +17,28 @@ captured, not how good the downstream model is.
 
 ![pipeline overview](figures/methodology_flowchart.png)
 
+## The pipeline in action
+
+![same photo, 11 embeddings, 11 different guesses](figures/demo_predictions.png)
+
+One photo (a free-to-use Unsplash portrait, not part of any of the three rated
+datasets), run through all 11 frozen embeddings and their SCUT-trained ridge
+probes. No cherry-picking involved -- it's just a nice illustration of the
+result below: the identity-trained models (orange) cluster lower than the
+non-identity ones (green), same pattern as the aggregate numbers.
+
+![predicted attractiveness score by head angle, per embedding family](figures/demo_angle_predictions.png)
+
+Three frames from one continuous head-turning video (frontal / three-quarter /
+profile, free stock footage, also not part of any rated dataset), same 11
+SCUT-trained probes. This is the pose-invariance story made literal: the
+identity-trained lines (orange) barely move across angles, exactly what
+they're built to do. Geometric's wild swing at profile isn't a "worse guess"
+so much as an extrapolation artifact -- SCUT's photos are all near-frontal, so
+a hand-ratio feature vector this far outside anything the probe was fit on is
+off the rails, which is itself a pretty honest illustration of what having
+zero invariance training actually costs you.
+
 ## What I found
 
 ![aggregate accuracy by family](figures/accuracy_aggregate_by_family.png)
