@@ -85,5 +85,4 @@ demographic gaps) if you want to dig past the headline figures above.
 
 ---
 
-This was just a fun little side project done out of curiosity, not intended for
-publications or formal research programs. Not peer reviewed :p
+This was just a fun little side project done out of curiosity.
